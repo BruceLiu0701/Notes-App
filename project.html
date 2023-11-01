@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width,initial-scale=1.0">
+        <title>project pratice</title>
+        <script src="https://kit.fontawesome.com/4809d4bfe7.js" crossorigin="anonymous"></script>
+        <!-- axios CDN -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.5.1/axios.min.js" integrity="sha512-emSwuKiMyYedRwflbZB2ghzX8Cw8fmNVgZ6yQNNXXagFzFOaQmbvQ1vmDkddHjm5AITcBIZfC7k4ShQSjgPAmQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <link rel="stylesheet" href="./project.css">
+    </head>
+    <body>
+
+        <button class="add"><i class="fa-solid fa-plus"></i>Add Notes</button>
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.4/marked.min.js" 
+        integrity="sha512-UbzIAxNns9+1WqEoMjwcvPyI0jG6zVmFc3do3CerSVQ/qWfhw8wk6T++CVn4MTvYOyrqs9sGS7MTo1oPnm40AQ==" 
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script type="text/javascript">
+
+            const addNewNote=document.querySelector('.add')
+            const body=document.body
+            const notebook=JSON.parse(localStorage.getItem('yourNote'))||""    // 一上來先取得localStorage儲存內容
+            if(notebook){
+                notebook.forEach(note=>createNote(note))
+            }
+            addNewNote.addEventListener('click',()=>{        // 點擊按紐添加筆記文件
+                createNote()           
+            })
+            // 創建筆記文件的函式
+            function createNote(note=""){                    // 給定默認值, 用於新note不傳參
+                const newNode=document.createElement('div')
+                newNode.classList.add('note')
+                newNode.innerHTML=`
+                    <div class="edit">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                        <i class="fa-solid fa-trash-can"></i>
+                    </div>
+                    <div class="main unedit"></div>
+                    <textarea name="" id="text" ></textarea>
+                `
+                // 創建的節點尚未被放到容器內, document內是取不到標籤的, 從新創建的節點newNode內尋找標籤, 並使用 querySelector
+                const editNote=newNode.querySelector('.fa-pen-to-square')
+                const trash=newNode.querySelector('.fa-trash-can')
+                const text=newNode.querySelector('textarea')
+                const ice=newNode.querySelector('.main')
+                
+                text.value=note                              // 設定textarea的內容為傳入的參數note
+                ice.innerHTML=marked.parse(note)             // 同時也修改隱藏的main class內的內容
+
+                // 點擊刪除圖案後的回調
+                trash.addEventListener('click',()=>{
+                    if(window.confirm('確定刪除此文件嗎?')){
+                        newNode.remove()                     // 點擊移除此textarea節點後, 呼叫管理localStorage的函式, 重新儲存localStorage
+                        getStorage()                         
+                    }
+                })
+                // 點擊編輯圖案後的回調
+                editNote.addEventListener('click',()=>{
+                    ice.classList.toggle('unedit')
+                    text.classList.toggle('unedit')
+                })
+                // 文字區輸入時, 讓div main的innerHTML也同步和輸入內容相同
+                // marked.parse() API, 可使用一些符號達到大寫或清單效果等, # ..., -...等等 
+                text.addEventListener('input',(e)=>{
+                    const {value}=e.target
+                    ice.innerHTML=marked.parse(value)        // textarea的value每次變動時就呼叫一次localStorage的函式, 重新儲存
+                    getStorage()
+                })
+                body.appendChild(newNode)  
+            }
+            // 處理儲存localStorage的函式
+            function getStorage() {
+                const textArr=document.querySelectorAll('textarea')      // 取得全部已經創建的textarea
+                const notes=[]
+                textArr.forEach(note=>{
+                    notes.push(note.value)
+                })
+                localStorage.setItem('yourNote',JSON.stringify(notes))
+            }
+        </script>
+        
+    </body>
+</html>
